@@ -18,7 +18,7 @@ func connectWithMgoDial() {
 		log.Fatal("mgo.Dial error:", err)
 	}
 	defer session.Close()
-	
+
 	log.Println("Connected with mgo.Dial")
 }
 
@@ -85,7 +85,7 @@ func connectWithMongoDriver() {
 
 func main() {
 	// Uncomment one method at a time to test
-	connectWithMongoDriver()
+	// connectWithMongoDriver()
 	connectWithMgoDial()
 	// connectWithMgoDialInfo()
 	// connectWithMgoParseURL()
