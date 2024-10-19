@@ -1,0 +1,60 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks: 
+      - network1
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh mongodb://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/?authSource=${DB_NAME} --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
+    
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    networks: 
+      - network1
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+      ME_CONFIG_BASICAUTH: false
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      - MONGO_URL=mongodb://root:example@mongo:27017/mydb?authSource=admin
+    networks: 
+      - network1
+    command: ["./main"]
+
+volumes:
+  mongo-data:
+
+networks:
+  network1:
+    driver: bridge
